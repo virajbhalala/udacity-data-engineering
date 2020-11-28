@@ -32,11 +32,7 @@ class SqlQueries:
 
     user_table_insert = ("""
         INSERT INTO users (
-            userid,
-            first_name,
-            last_name,
-            gender,
-            level
+            userid, first_name, last_name, gender, level
         )
         SELECT distinct userid, firstname, lastname, gender, level
         FROM staging_events
@@ -44,38 +40,21 @@ class SqlQueries:
     """)
 
     song_table_insert = ("""
-        INSERT INTO songs (
-            songid,
-            title,
-            artistid,
-            year,
-            duration
+        INSERT INTO songs (songid, title,artistid,year,duration
         )
         SELECT distinct song_id, title, artist_id, year, duration
         FROM staging_songs
     """)
 
     artist_table_insert = ("""
-        INSERT INTO artists (
-            artistid,
-            name,
-            location,
-            latitude,
-            longitude    
+        INSERT INTO artists (artistid, name,location,latitude,longitude    
         )
         SELECT distinct artist_id, artist_name, artist_location, artist_latitude, artist_longitude
         FROM staging_songs
     """)
 
     time_table_insert = ("""
-        INSERT INTO time (
-            start_time,
-            hour,
-            day,
-            week,
-            month,
-            year,
-            weekday
+        INSERT INTO time (start_time,hour, day, week,month,year,weekday
         )
         SELECT start_time, extract(hour from start_time), extract(day from start_time), extract(week from start_time), 
                extract(month from start_time), extract(year from start_time), extract(dayofweek from start_time)

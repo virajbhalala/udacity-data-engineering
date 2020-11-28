@@ -4,7 +4,7 @@ from airflow.utils.decorators import apply_defaults
 
 class DataQualityOperator(BaseOperator):
     """
-    Run data quality check based on parameter with list of sql queries..
+    Run data quality check based on sql queries passed in dq_checks params
     """
     ui_color = '#89DA59'
 
@@ -19,28 +19,25 @@ class DataQualityOperator(BaseOperator):
         self.dq_checks = dq_checks
         
     def execute(self, context):
+        self.log.info('Starting data quality checks following direction passed in the params')
         redshift = PostgresHook(self.redshift_conn_id)
-
-        self.log.info('Starting data quality checks...')
-
         error_count = 0
-        failing_tests = []
-
+        failed_tests = []
         # loop through list of data quality queries
-        for check in self.dq_checks:
-            sql = check.get('check_sql')
-            exp_result = check.get('expected_result')
-
-            self.log.info(f"Running following query: {sql}")
-            records = redshift.get_records(sql)[0]
-
-            if exp_result != records[0]:
+        for dq in self.dq_checks:
+            sql = dq.get('check_sql')
+            correct_result = dq.get('result')
+            this_result = redshift.get_records(sql)[0]
+            # compare actual result vs obtained results of the query
+            if correct_result != this_result[0]:
+                # error encountered
                 error_count += 1
-                failing_tests.append(sql)
+                failed_tests.append(sql)
         # raise an error if any failed tests
         if error_count > 0:
-            self.log.info('Tests failed')
-            self.log.info(failing_tests)
+            self.log.info('Following tests failed')
+            for ft in  failed_tests:
+                self.log.info(f'query: {ft}')
             raise ValueError('Data quality check failed')
         else:
-            self.log.info('All data quality checks have passed.')
+            self.log.info('All tests have passed!!!!!')
